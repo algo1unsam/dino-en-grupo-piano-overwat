@@ -1,6 +1,6 @@
 import wollok.game.*
     
-const velocidad = 250
+const velocidad = 200
 
 object juego{
 
@@ -59,11 +59,12 @@ object reloj {
 	method position() = game.at(1, game.height()-1)
 	
 	method pasarTiempo() {
+		tiempo = tiempo + 10
 		//COMPLETAR
 	}
 	method iniciar(){
 		tiempo = 0
-		game.onTick(100,"tiempo",{self.pasarTiempo()})
+		game.onTick(100,"time",{self.pasarTiempo()})
 	}
 	method detener(){
 		//COMPLETAR
@@ -81,18 +82,32 @@ object cactus {
 
 	method iniciar(){
 		position = self.posicionInicial()
-		game.onTick(velocidad,"moverCactus",{self.mover()})
+		game.onTick(velocidad,"moverCactus",{=>self.mover()})
 	}
 	
 	method mover(){
 		//COMPLETAR
+		if(position.x() <= 0){
+			position = self.posicionInicial()
+		}else{
+			position=position.left(1)
+		}
 	}
 	
 	method chocar(){
 		//COMPLETAR
+		if(self.position() == dino.position()){
+			game.schedule(10, { =>self.detener()})
+			game.schedule(3000,{ =>game.stop()})
+		}
 	}
     method detener(){
-		//COMPLETAR
+    	if(dino.vivo()){
+	    	game.removeTickEvent("moverCactus")
+	    	game.removeTickEvent("time")
+			//COMPLETAR
+		}
+		dino.morir()
 	}
 }
 
@@ -105,7 +120,7 @@ object suelo{
 
 
 object dino {
-	var vivo = true
+	var property vivo = true
 
 	var position = game.at(1,suelo.position().y())
 	
@@ -113,6 +128,13 @@ object dino {
 	method position() = position
 	
 	method saltar(){
+		if(position.y()==1){
+			position = position.up(1)
+			game.schedule(250, {=> position = position.up(1)})
+			game.schedule(500, {=> position = position.down(1)})
+			game.schedule(750, {=> position = position.down(1)})
+				
+		}
 		//COMPLETAR
 	}
 	
@@ -125,7 +147,16 @@ object dino {
 	}
 	method morir(){
 		game.say(self,"¡Auch!")
-		vivo = false
+		if(vivo){
+			game.schedule(250, {=> position = position.up(1)})
+			game.schedule(300, {=> vivo = false})
+			game.schedule(500, {=> position = position.down(1)})
+			game.schedule(750, {=> position = position.down(1)})
+			game.schedule(1000, {=> position = position.down(1)})
+			game.schedule(1250, {=> position = position.down(1)})
+			game.schedule(1500, {=> position = position.down(1)})
+			
+		}
 	}
 	method iniciar() {
 		vivo = true
